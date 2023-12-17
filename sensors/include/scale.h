@@ -5,7 +5,7 @@
 
 #include <HX711.h>
 
-void initialize_scale();
+bool initialize_scale();
 void tare_scale_by_value();
 void reset_tare_value();
 void zero_tare_value();

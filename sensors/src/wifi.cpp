@@ -31,6 +31,7 @@ void check_wifi_status() {
       WiFi.disconnect();
       WiFi.reconnect();
     } else {
+        Serial.println("Wifi Connected");
     }
 
     last_status_check_timestamp = current_millis;

@@ -58,7 +58,7 @@ void handleNotFound(AsyncWebServerRequest *request) {
   request->send(404);
 }
 
-void initialize_server() {
+bool initialize_server() {
   server.on("/scale/tare/reset", HTTP_GET, handleTareResetScaleRequest);
   server.on("/scale/tare", HTTP_GET, handleTareScaleRequest);
   server.on("/scale/read", HTTP_GET, handleReadScaleRequest);
@@ -67,4 +67,5 @@ void initialize_server() {
   server.onNotFound(handleNotFound);
 
   server.begin();
+  return true;
 }

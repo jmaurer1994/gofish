@@ -7,5 +7,5 @@
 
 #include <ESPAsyncWebServer.h>
 
-void initialize_server();
+bool initialize_server();
 #endif

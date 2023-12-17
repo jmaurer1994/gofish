@@ -3,7 +3,7 @@
 HX711 scale;
 double tare_value = INITIAL_SCALE_TARE_VALUE;
 
-void initialize_scale()
+bool initialize_scale()
 {
 
     scale.begin(LOADCELL_DOUT_PIN, LOADCELL_SCK_PIN);
@@ -11,6 +11,8 @@ void initialize_scale()
     scale.set_scale(-109000 / 1000);
     scale.power_down(); //sleep the scale until we're ready to use it
     Serial.println("Scale ready for use");
+
+    return true;
 }
 
 void tare_scale_by_value(){
