@@ -14,7 +14,7 @@ class ForceEvent {
     void record_sample(float value) { samples.push_back(value); }
     void init_object() { timestamp = micros(); }
     void reset_object() { samples.clear(); }
-
+    uint64_t get_timestamp() { return timestamp; }
     int samples_collected() { return samples.size(); }
     float peak_force() {
         return *std::max_element(samples.begin(), samples.end());

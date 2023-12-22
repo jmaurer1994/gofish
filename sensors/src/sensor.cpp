@@ -22,7 +22,7 @@ bool sample_force_sensor() {
     if (sensor_activity && !sampling_active) {
         sampling_active = true;
         current_event.init_object(); // set timestamp
-        DEBUG_PRINTLN("Started sampling");
+        DEBUG_PRINTF1("Started sampling: %d\n", current_event.get_timestamp());
     }
 
     // do sampling
@@ -31,7 +31,7 @@ bool sample_force_sensor() {
     if (force < 100) {
         // stop sampling
         if (current_event.samples_collected() > 0) {
-            DEBUG_PRINTF3("Recorded event:\navg:%f\tpeak:%f\tsamples:%d", current_event.average_force(), current_event.peak_force(), current_event.samples_collected());
+            DEBUG_PRINTF3("Recorded event:\navg:%f\tpeak:%f\tsamples:%d\n", current_event.average_force(), current_event.peak_force(), current_event.samples_collected());
             current_events.push_back(current_event);
             current_event.reset_object(); // clear list
         } // don't save phantom events (happens on wifi dc?)
@@ -81,6 +81,8 @@ bool initialize_force_sensor() {
 
     return true;
 }
+
+
 
 void persist_events() {
     // saves events to NAND
