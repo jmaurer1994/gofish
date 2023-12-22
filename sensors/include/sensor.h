@@ -16,6 +16,13 @@ class ForceEvent {
     void reset_object() { samples.clear(); }
 
     int samples_collected() { return samples.size(); }
+    float peak_force() {
+        return *std::max_element(samples.begin(), samples.end());
+    }
+
+    float average_force() {
+        return peak_force() / samples_collected();
+    }
 };
 
 bool initialize_force_sensor();
