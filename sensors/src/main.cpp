@@ -2,12 +2,12 @@
 #include "main.h"
 
 void setup() {
-    
+
     DEBUG_BEGIN(SERIAL_BAUD_RATE);
 
     delay(INITIAL_STARTUP_DELAY);
     DEBUG_PRINTLN("Starting up");
-    
+
     if (!initialize_wifi()) {
         DEBUG_PRINTLN("Failed to initialize wifi");
     }
@@ -20,7 +20,10 @@ void setup() {
         DEBUG_PRINTLN("Failed to initialize force sensor");
     }
 
-    // initialize_scale();
+    if (!initialize_scale()) {
+        DEBUG_PRINTLN("Failed to initialize scale");
+    }
+    
     DEBUG_PRINTLN("Done setup");
 }
 
@@ -29,4 +32,3 @@ void loop() {
         check_wifi_status();
     }
 }
-

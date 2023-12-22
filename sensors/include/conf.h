@@ -1,14 +1,19 @@
 #ifndef CONF_H
 #define CONF_H
 
-#define DEBUG
-
-#define INITIAL_SCALE_TARE_VALUE -6293.5 // TODO:recalc
+#define LOADCELL_INIT_TARE_VALUE -6293.5
+// calibration factor: read raw loadcell value with known weight attached
+// divide reading(g) by known weight mass(g)
+#define LOADCELL_CALIBRATION_FACTOR -109
 
 #define LOADCELL_DOUT_PIN 3
 #define LOADCELL_SCK_PIN 2
 
 #define EADC_ALERT_PIN 0
+//controls when the eADC comparator sends an alert
+//high must be >= low
+#define EADC_COMPARATOR_THRESHOLD_HIGH 0x0250
+#define EADC_COMPARATOR_THRESHOLD_LOW 0x0100
 
 // should be provided by user_build_params.ini
 #ifndef WLAN_IPV4_ADDRESS

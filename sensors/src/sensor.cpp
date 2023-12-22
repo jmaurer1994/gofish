@@ -2,14 +2,8 @@
 #include "conf.h"
 ADS1115 ADS(0x48);
 
-float peak_force = 0;
-float total_force = 0;
-int samples_collected = 0;
-
 volatile bool sensor_activity = false;
 volatile bool sampling_active = false;
-
-std::vector<ForceEvent> events;
 
 void IRAM_ATTR SAMPLE_START_ISR() {
     if (!sampling_active) {
@@ -17,31 +11,10 @@ void IRAM_ATTR SAMPLE_START_ISR() {
     }
 }
 
-class ForceEvent{
-    uint64_t timestamp;
-    std::vector<float> samples;
-public:
-    void record_sample(float  value){
-        samples.push_back(value);
-    }
-    void init_object(){
-        timestamp = micros();
-        samples.clear();
-    }
-
-    int samples_collected(){
-        return samples.size();
-    }
-};
-
-ForceEvent *current_event; //holds a pointer to the current sample
+std::vector<ForceEvent> current_events;
+ForceEvent current_event;
 
 bool sample_force_sensor() {
-    if (!ADS.isConnected()) {
-        DEBUG_PRINTLN("ADS not connected!");
-        return false;
-    }
-    
     if (!sensor_activity && !sampling_active) {
         return false; // no sensor activity & not sampling
     }
@@ -49,7 +22,7 @@ bool sample_force_sensor() {
     if (sensor_activity && !sampling_active) {
         DEBUG_PRINTLN("Started sampling");
         sampling_active = true;
-        current_event->init_object();
+        current_event.init_object(); // set timestamp
     }
 
     // do sampling
@@ -57,9 +30,9 @@ bool sample_force_sensor() {
 
     if (force < 100) {
         // stop sampling
-        if(current_event->samples_collected() > 0){
-            events.push_back(current_event);
-            current_event = new ForceEvent; //allocate another object
+        if (current_event.samples_collected() > 0) {
+            current_events.push_back(current_event);
+            current_event.reset_object(); // clear list
         } // don't save phantom events (happens on wifi dc?)
 
         sensor_activity = false; // reset int
@@ -67,7 +40,7 @@ bool sample_force_sensor() {
         return false;
     }
 
-    current_event->record_sample(force);
+    current_event.record_sample(force);
 
     return true;
 }
@@ -93,15 +66,21 @@ bool initialize_force_sensor() {
     ADS.requestADC(0);
     DEBUG_PRINTLN("Intialized ADC"); // Sends above settings to ADC
 
-    current_event = new ForceEvent;
-
     pinMode(EADC_ALERT_PIN, INPUT_PULLUP);
     DEBUG_PRINTLN("Configured alert pin");
 
     attachInterrupt(digitalPinToInterrupt(EADC_ALERT_PIN), SAMPLE_START_ISR,
                     RISING);
-   
+
     DEBUG_PRINTLN("Attached interrupt");
 
+    if (!ADS.isConnected()) {
+        DEBUG_PRINTLN("ADS not connected!");
+    }
+
     return true;
+}
+
+void persist_events() {
+    // saves events to NAND
 }

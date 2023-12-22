@@ -45,6 +45,10 @@ void handleReadScaleRequest(AsyncWebServerRequest *request) {
 // Force Sensor
 ///////////////////////////
 
+void handleRetrieveCurrentEvents(AsyncWebServerRequest *request) {}
+
+void handleSaveAndClearCurrentEvents(AsyncWebServerRequest *request) {}
+
 ///////////////////////////
 // Default
 ///////////////////////////
