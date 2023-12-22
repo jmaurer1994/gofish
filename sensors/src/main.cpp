@@ -1,36 +1,32 @@
 
-#include "lib.h"
-#include "scale.h"
-#include "sensor.h"
-#include "server.h"
-#include "wifi.h"
+#include "main.h"
 
-void setup()
-{
-    Serial.begin(115200);
-    Serial.println("Starting up");
+void setup() {
+    
+    DEBUG_BEGIN(SERIAL_BAUD_RATE);
+
+    delay(INITIAL_STARTUP_DELAY);
+    DEBUG_PRINTLN("Starting up");
+    
     if (!initialize_wifi()) {
-        Serial.println("Failed to initialize wifi");
-  } else {
-    Serial.println("Initialized WiFi module");
-  }
-  if (!initialize_server()) {
-      Serial.println("Failed to initialize web server");
-  } else {
-      Serial.println("Initialized web server");
-  }
-  if (!initialize_force_sensor()) {
-      Serial.println("Failed to initialize force sensor");
-  } else {
-      Serial.println("Force sensor initialized");
-  }
+        DEBUG_PRINTLN("Failed to initialize wifi");
+    }
 
-  // initialize_scale();
-  
+    if (!initialize_server()) {
+        DEBUG_PRINTLN("Failed to initialize web server");
+    }
+
+    if (!initialize_force_sensor()) {
+        DEBUG_PRINTLN("Failed to initialize force sensor");
+    }
+
+    // initialize_scale();
+    DEBUG_PRINTLN("Done setup");
 }
 
-void loop()
-{
-  check_wifi_status();
-  sample_force_sensor();
+void loop() {
+    if (!sample_force_sensor()) {
+        check_wifi_status();
+    }
 }
+

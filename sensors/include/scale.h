@@ -1,8 +1,7 @@
 #ifndef SCALE_H
 #define SCALE_H
 
-#include "lib.h"
-
+#include "conf.h"
 #include <HX711.h>
 
 bool initialize_scale();

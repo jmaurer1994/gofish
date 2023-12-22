@@ -1,7 +1,5 @@
 #include "wifi.h"
 
-WiFiModuleState current_state = WIFI_UNINITIALIZED;
-
 int status_check_interval = 10E3;
 int last_status_check_timestamp = 0;
 IPAddress ipaddr(WLAN_IPV4_ADDRESS);
@@ -12,14 +10,11 @@ bool initialize_wifi() {
   WiFi.mode(WIFI_STA);
 
   if (!WiFi.config(ipaddr, gateway, subnet)) {
-    current_state = WIFI_FAILED;
     return false;
   }
 
   WiFi.begin(WLAN_SSID, WLAN_WPA2KEY);
-  while (WiFi.status() != WL_CONNECTED) {
-    delay(1000);
-  }
+  DEBUG_PRINTLN("WiFi connecting");
   return true;
 }
 
@@ -28,10 +23,11 @@ void check_wifi_status() {
   // if WiFi is down, try reconnecting
   if (current_millis - last_status_check_timestamp >= status_check_interval) {
     if (WiFi.status() != WL_CONNECTED) {
+        DEBUG_PRINTF1("WiFi not connected, connecting to: %s\n", WLAN_SSID);
       WiFi.disconnect();
       WiFi.reconnect();
     } else {
-        Serial.println("Wifi Connected");
+        DEBUG_PRINTF1("Connected to %s\n", WLAN_SSID);
     }
 
     last_status_check_timestamp = current_millis;
