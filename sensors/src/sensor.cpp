@@ -72,7 +72,7 @@ bool initialize_force_sensor() {
 
     attachInterrupt(digitalPinToInterrupt(EADC_ALERT_PIN), SAMPLE_START_ISR,
                     RISING);
-
+ 
     DEBUG_PRINTLN("Attached interrupt");
 
     if (!ADS.isConnected()) {
@@ -82,8 +82,17 @@ bool initialize_force_sensor() {
     return true;
 }
 
+DynamicJsonDocument serialize_events() {
+    DynamicJsonDocument events(1024);
+    for (ForceEvent event : current_events){
+        events["timestamps"] = event.get_timestamp();
+        for(float sample : event.get_samples()){
+            events["samples"].add(sample);
+        }
+    }
+    return events;
+}
 
-
-void persist_events() {
-    // saves events to NAND
+void unsafe_clear_events(){
+    current_events.clear();
 }

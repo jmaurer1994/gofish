@@ -1,6 +1,8 @@
 #ifndef CONF_H
 #define CONF_H
 
+#include <ArduinoJson.h>
+
 #define LOADCELL_INIT_TARE_VALUE -6293.5
 // calibration factor: read raw loadcell value with known weight attached
 // divide reading(g) by known weight mass(g)

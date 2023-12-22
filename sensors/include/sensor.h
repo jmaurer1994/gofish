@@ -15,17 +15,16 @@ class ForceEvent {
     void init_object() { timestamp = micros(); }
     void reset_object() { samples.clear(); }
     uint64_t get_timestamp() { return timestamp; }
+    std::vector<float> get_samples() { return samples; }
     int samples_collected() { return samples.size(); }
     float peak_force() {
         return *std::max_element(samples.begin(), samples.end());
     }
-
-    float average_force() {
-        return peak_force() / samples_collected();
-    }
+    float average_force() { return peak_force() / samples_collected(); }
 };
 
 bool initialize_force_sensor();
 bool sample_force_sensor();
-void clear_events();
+void unsafe_clear_events();
+DynamicJsonDocument serialize_events();
 #endif
