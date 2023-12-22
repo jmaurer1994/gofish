@@ -2,6 +2,7 @@
 #define SCALE_H
 
 #include "conf.h"
+
 #include <HX711.h>
 
 bool initialize_scale();

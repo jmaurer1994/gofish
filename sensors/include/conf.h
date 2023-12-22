@@ -32,6 +32,9 @@
 #ifndef SERIAL_BAUD_RATE
 #define SERIAL_BAUD_RATE 115200
 #endif
+#ifndef WEBSERVER_PORT
+#define WEBSERVER_PORT 80
+#endif
 
 #ifdef DEBUG
 #define DEBUG_BEGIN(x) Serial.begin(x)
