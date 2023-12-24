@@ -88,14 +88,13 @@ bool initialize_force_sensor() {
 std::vector<ForceEvent> get_current_events() { return current_events; }
 
 size_t clear_events(uint64_t timestamp) {
-    uint64_t currentTime = get_epoch_time();
 
     size_t event_count = current_events.size();
 
     current_events.erase(
         std::remove_if(current_events.begin(), current_events.end(),
-                       [currentTime](const ForceEvent &event) {
-                           return event.get_timestamp() <= currentTime;
+                       [timestamp](const ForceEvent &event) {
+                            return event.get_timestamp() <= timestamp;
                        }),
         current_events.end());
 
