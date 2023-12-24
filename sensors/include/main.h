@@ -3,6 +3,6 @@
 
 #include "scale.h"
 #include "server.h"
-#include "wifi.h"
+#include "network.h"
 
 #endif

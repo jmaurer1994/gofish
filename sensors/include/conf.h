@@ -7,7 +7,7 @@
 // calibration factor: read raw loadcell value with known weight attached
 // divide reading(g) by known weight mass(g)
 #define LOADCELL_CALIBRATION_FACTOR -109
-
+#define LOADCELL_MAX_SAMPLES_PER_REQUEST 100
 #define LOADCELL_DOUT_PIN 3
 #define LOADCELL_SCK_PIN 2
 
@@ -18,14 +18,17 @@
 #define EADC_COMPARATOR_THRESHOLD_LOW 0x0100
 
 #define WEBSERVER_PORT 80
-#define WEBSERVER_MEMORYLIMIT 16384
+#define WEBSERVER_MEMORYLIMIT 4.194E6
 
 #define WLAN_IPV4_ADDRESS 192,168,25,83
 #define WLAN_IPV4_GATEWAY 192,168,25,1
 #define WLAN_IPV4_SUBNET_MASK 255,255,255,0
 #define WLAN_IPV4_DNS1 8,8,8,8
 #define WLAN_IPV4_DNS2 8,8,4,4
+#define WLAN_CHECK_INTERVAL_MILLIS 10E3
 
+#define NTP_SYNC_URL "north-america.pool.ntp.org"
+#define NTP_SYNC_INTERVAL_MILLIS 60E3
 // should be provided by user_build_params.ini
 #ifndef WLAN_SSID
 #define WLAN_SSID "SSID"

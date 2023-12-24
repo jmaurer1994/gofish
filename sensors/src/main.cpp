@@ -8,12 +8,9 @@ void setup() {
     delay(INITIAL_STARTUP_DELAY);
     DEBUG_PRINTLN("Starting up");
 
-    if (!initialize_wifi()) {
-        DEBUG_PRINTLN("Failed to initialize wifi");
+    if (!initialize_network()) {
+        DEBUG_PRINTLN("Failed to initialize network");
     }
-    // MD5(admin) = 21232f297a57a5a743894a0e4a801fc3
-    // ArduinoOTA.setPasswordHash("21232f297a57a5a743894a0e4a801fc3");
-
  
     if (!initialize_server()) {
         DEBUG_PRINTLN("Failed to initialize web server");
@@ -33,7 +30,6 @@ void setup() {
 
 void loop() {
     if (!sample_force_sensor()) {
-        check_wifi_status();
-        
+        run_network_checks();
     }
 }

@@ -21,23 +21,27 @@ void handleTareResetScaleRequest(AsyncWebServerRequest *request) {
     reset_tare_value();
     request->send(200);
 }
-
+//TODO: convert to a json
 void handleReadScaleRequest(AsyncWebServerRequest *request) {
-    if (request->hasParam("readings")) {
-        AsyncWebParameter *readingsParam = request->getParam("readings");
-
-        long readings = readingsParam->value().toInt();
-
-        if (readings > 0 && readings <= 100) {
-            double avg_reading = get_avg_reading(readings);
-
-            String returnval = String(avg_reading, 4);
-
-            request->send(200, "text/plain", returnval);
-            return;
-        }
+    if (!request->hasParam("samples")) {
+        request->send(400); //no default value available
+        return;
     }
-    request->send(402);
+
+    AsyncWebParameter *samplesParam = request->getParam("samples");
+
+    long samples = samplesParam->value().toInt();
+
+    if(!(samples > 0 && samples <= LOADCELL_MAX_SAMPLES_PER_REQUEST)){
+        request->send(400); //outside of specified range
+        return;
+    }
+    
+    double avg_reading = get_avg_reading(samples);
+
+    String returnval = String(avg_reading, 4);
+
+    request->send(200, "text/plain", returnval);
     return;
 }
 
@@ -50,7 +54,7 @@ void handleRetrieveCurrentEvents(AsyncWebServerRequest *request) {
 
     DynamicJsonDocument responseObject(WEBSERVER_MEMORYLIMIT);
     JsonArray eventsArray = responseObject.createNestedArray("events");
-    
+
     for (ForceEvent event : current_events) {
         JsonObject eventObject = eventsArray.createNestedObject();
         eventObject["timestamp"] = event.get_timestamp();
@@ -73,9 +77,21 @@ void handleRetrieveCurrentEvents(AsyncWebServerRequest *request) {
 }
 
 void handleClearCurrentEvents(AsyncWebServerRequest *request) {
-    unsafe_clear_events();
+    if (!request->hasParam("timestamp")) {
+        request->send(400);
+        return;
+    }
 
-    request->send(200);
+    uint64_t timestamp = request->getParam("timestamp")->value().toInt();
+
+    if(timestamp == 0){
+        request->send(400);
+        return;
+    }
+
+    size_t count = clear_events(timestamp);
+
+    request->send(200, "text/plain", String(count));
     return;
 }
 

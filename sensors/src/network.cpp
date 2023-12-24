@@ -1,7 +1,5 @@
-#include "wifi.h"
+#include "network.h"
 
-int status_check_interval = 10E3;
-int last_status_check_timestamp = 0;
 IPAddress ipaddr(WLAN_IPV4_ADDRESS);
 IPAddress gateway(WLAN_IPV4_GATEWAY);
 IPAddress subnet(WLAN_IPV4_SUBNET_MASK);
@@ -9,9 +7,9 @@ IPAddress dns1(WLAN_IPV4_DNS1);
 IPAddress dns2(WLAN_IPV4_DNS2);
 
 WiFiUDP ntpUDP;
-NTPClient timeClient(ntpUDP, "north-america.pool.ntp.org", 0, 60E3);
+NTPClient timeClient(ntpUDP, NTP_SYNC_URL, 0, NTP_SYNC_INTERVAL_MILLIS);
 
-bool initialize_wifi() {
+bool initialize_network() {
     WiFi.mode(WIFI_STA);
 
     if (!WiFi.config(ipaddr, gateway, subnet, dns1, dns2)) {
@@ -50,32 +48,44 @@ bool initialize_wifi() {
         });
 
     timeClient.begin();
-    DEBUG_PRINTLN("WiFi connecting");
+    DEBUG_PRINTLN("Network initialized");
     return true;
 }
 
-void check_wifi_status() {
-    unsigned long current_millis = millis();
-    // if WiFi is down, try reconnecting
-    if (current_millis - last_status_check_timestamp >= status_check_interval) {
-        if (WiFi.status() != WL_CONNECTED) {
-            DEBUG_PRINTF1("WiFi not connected(%d), attempting to connect... ",
-                          WiFi.status());
-            DEBUG_PRINTLN(WLAN_SSID);
-            WiFi.disconnect();
-            WiFi.reconnect();
-        } else {
-            IPAddress ip = WiFi.localIP();
-            timeClient.update();
-            ArduinoOTA.handle();
-            DEBUG_PRINTF2("Connected to network: %s\ncurrent time: %s\t",
-                          WLAN_SSID, timeClient.getFormattedTime());
-            DEBUG_PRINT("IP: ");
-            DEBUG_PRINTLN(ip);
-        }
+void run_network_checks() {
+    static uint64_t last_status_check_timestamp = -WLAN_CHECK_INTERVAL_MILLIS; //should run at start
+    uint32_t current_millis = millis();
 
-        last_status_check_timestamp = current_millis;
+    if (current_millis - last_status_check_timestamp <
+        WLAN_CHECK_INTERVAL_MILLIS) {
+        return; // not time to to check
     }
+
+    // check wifi
+    if (WiFi.status() != WL_CONNECTED) {
+        DEBUG_PRINTF1("WiFi not connected(%d), attempting to connect... ",
+                      WiFi.status());
+        DEBUG_PRINTLN(WLAN_SSID);
+        WiFi.disconnect();
+        WiFi.reconnect();
+        return;
+    }
+
+    // sync with NTP server if needed
+    timeClient.update();
+
+    // handle any OTA events
+    ArduinoOTA.handle();
+
+    DEBUG_PRINTF2("Connected to network: %s\ncurrent time: %s\t", WLAN_SSID,
+                  timeClient.getFormattedTime());
+
+    IPAddress ip = WiFi.localIP();
+    DEBUG_PRINT("IP: ");
+    DEBUG_PRINTLN(ip);
+
+    last_status_check_timestamp = current_millis;
+    return;
 }
 
 uint64_t get_epoch_time() { return timeClient.getEpochTime(); }

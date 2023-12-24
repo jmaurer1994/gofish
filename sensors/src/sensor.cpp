@@ -32,7 +32,10 @@ bool sample_force_sensor() {
     if (force < 100) {
         // stop sampling
         if (current_event.samples_collected() > 0) {
-            DEBUG_PRINTF3("Recorded event:\navg:%f\tpeak:%f\tsamples:%d\n", current_event.average_force(), current_event.peak_force(), current_event.samples_collected());
+            DEBUG_PRINTF3("Recorded event:\navg:%f\tpeak:%f\tsamples:%d\n",
+                          current_event.average_force(),
+                          current_event.peak_force(),
+                          current_event.samples_collected());
             current_events.push_back(current_event);
             current_event.reset_object(); // clear list
         } // don't save phantom events (happens on wifi dc?)
@@ -42,7 +45,7 @@ bool sample_force_sensor() {
         return false;
     }
 
-    if(force != last_reading){
+    if (force != last_reading) {
         current_event.record_sample(force);
     }
 
@@ -64,21 +67,17 @@ bool initialize_force_sensor() {
     ADS.setComparatorMode(0);  // TRADITIONAL
     ADS.setComparatorLatch(0); // NON-LATCH
 
-    ADS.setComparatorThresholdHigh(0x0250);
-    ADS.setComparatorThresholdLow(0x0100);
+    ADS.setComparatorThresholdHigh(EADC_COMPARATOR_THRESHOLD_HIGH);
+    ADS.setComparatorThresholdLow(EADC_COMPARATOR_THRESHOLD_LOW);
 
     ADS.setComparatorQueConvert(0); // Trigger after 1 conversion?
 
     ADS.requestADC(0);
-    DEBUG_PRINTLN("Intialized ADC"); // Sends above settings to ADC
+    DEBUG_PRINTLN("Intialized external ADC"); // Sends above settings to ADC
 
     pinMode(EADC_ALERT_PIN, INPUT_PULLUP);
-    DEBUG_PRINTLN("Configured alert pin");
-
     attachInterrupt(digitalPinToInterrupt(EADC_ALERT_PIN), SAMPLE_START_ISR,
                     RISING);
- 
-    DEBUG_PRINTLN("Attached interrupt");
 
     if (!ADS.isConnected()) {
         DEBUG_PRINTLN("ADS not connected!");
@@ -87,10 +86,24 @@ bool initialize_force_sensor() {
     return true;
 }
 
-std::vector<ForceEvent> get_current_events() {
-    return current_events;
+std::vector<ForceEvent> get_current_events() { return current_events; }
+
+size_t clear_events(uint64_t timestamp) {
+    uint64_t currentTime = get_epoch_time();
+
+    size_t event_count = current_events.size();
+
+    current_events.erase(
+        std::remove_if(current_events.begin(), current_events.end(),
+                       [currentTime](const ForceEvent &event) {
+                           return event.get_timestamp() <= currentTime;
+                       }),
+        current_events.end());
+
+    return event_count - current_events.size();
 }
 
-void unsafe_clear_events(){
+size_t unsafe_clear_events() {
     current_events.clear();
+    return current_events.size();
 }

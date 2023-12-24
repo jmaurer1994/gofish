@@ -14,8 +14,8 @@
 #include <WiFi.h>
 #include <WiFiUdp.h>
 
-bool initialize_wifi();
-void check_wifi_status();
+bool initialize_network();
+void run_network_checks();
 
 uint64_t get_epoch_time();
 
