@@ -98,8 +98,17 @@ void handleClearCurrentEvents(AsyncWebServerRequest *request) {
 ///////////////////////////
 // Default
 ///////////////////////////
+void handleRoot(AsyncWebServerRequest *request) {
+    request->send(200);
+    return;
+}
+
 void handleHealthCheck(AsyncWebServerRequest *request) {
     request->send(200);
+    return;
+}
+void handleTimeCheck(AsyncWebServerRequest *request) {
+    request->send(200, "text/plain", String(get_epoch_time()));
     return;
 }
 
@@ -110,7 +119,10 @@ void handleNotFound(AsyncWebServerRequest *request) {
 }
 
 bool initialize_server() {
-    server.on("/", HTTP_GET, handleHealthCheck);
+    server.on("/", HTTP_GET, handleRoot);
+    server.on("/", HTTP_OPTIONS, handleHealthCheck);
+    server.on("/time", HTTP_GET, handleTimeCheck);
+
     server.on("/scale/tare/reset", HTTP_GET, handleTareResetScaleRequest);
     server.on("/scale/tare", HTTP_GET, handleTareScaleRequest);
     server.on("/scale/read", HTTP_GET, handleReadScaleRequest);
