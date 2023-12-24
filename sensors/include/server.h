@@ -5,7 +5,8 @@
 #include "scale.h"
 #include "sensor.h"
 
-#include <ESPAsyncWebServer.h>
+#include <ESPAsyncWebSrv.h>
+#include <AsyncJson.h>
 
 bool initialize_server();
 #endif

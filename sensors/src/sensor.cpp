@@ -13,6 +13,7 @@ void IRAM_ATTR SAMPLE_START_ISR() {
 
 std::vector<ForceEvent> current_events;
 ForceEvent current_event;
+float last_reading = 0;
 
 bool sample_force_sensor() {
     if (!sensor_activity && !sampling_active) {
@@ -41,7 +42,11 @@ bool sample_force_sensor() {
         return false;
     }
 
-    current_event.record_sample(force);
+    if(force != last_reading){
+        current_event.record_sample(force);
+    }
+
+    last_reading = force;
 
     return true;
 }
@@ -82,15 +87,8 @@ bool initialize_force_sensor() {
     return true;
 }
 
-DynamicJsonDocument serialize_events() {
-    DynamicJsonDocument events(1024);
-    for (ForceEvent event : current_events){
-        events["timestamps"] = event.get_timestamp();
-        for(float sample : event.get_samples()){
-            events["samples"].add(sample);
-        }
-    }
-    return events;
+std::vector<ForceEvent> get_current_events() {
+    return current_events;
 }
 
 void unsafe_clear_events(){

@@ -45,9 +45,39 @@ void handleReadScaleRequest(AsyncWebServerRequest *request) {
 // Force Sensor
 ///////////////////////////
 
-void handleRetrieveCurrentEvents(AsyncWebServerRequest *request) {}
+void handleRetrieveCurrentEvents(AsyncWebServerRequest *request) {
+    std::vector<ForceEvent> current_events = get_current_events();
 
-void handleSaveAndClearCurrentEvents(AsyncWebServerRequest *request) {}
+    DynamicJsonDocument responseObject(WEBSERVER_MEMORYLIMIT);
+    JsonArray eventsArray = responseObject.createNestedArray("events");
+    
+    for (ForceEvent event : current_events) {
+        JsonObject eventObject = eventsArray.createNestedObject();
+        eventObject["timestamp"] = event.get_timestamp();
+
+        for (float sample : event.get_samples()) {
+            eventObject["samples"].add(sample);
+        }
+    }
+
+    String response;
+
+    if (request->hasParam("pretty")) {
+        serializeJsonPretty(responseObject, response);
+    } else {
+        serializeJson(responseObject, response);
+    }
+
+    request->send(200, "application/json", response);
+    return;
+}
+
+void handleClearCurrentEvents(AsyncWebServerRequest *request) {
+    unsafe_clear_events();
+
+    request->send(200);
+    return;
+}
 
 ///////////////////////////
 // Default
@@ -69,8 +99,14 @@ bool initialize_server() {
     server.on("/scale/tare", HTTP_GET, handleTareScaleRequest);
     server.on("/scale/read", HTTP_GET, handleReadScaleRequest);
 
+    server.on("/force/events/read_current", HTTP_GET,
+              handleRetrieveCurrentEvents);
+    server.on("/force/events/clear_current", HTTP_GET,
+              handleClearCurrentEvents);
+
     server.onNotFound(handleNotFound);
 
     server.begin();
+    DEBUG_PRINTF1("Server listening on port %d\n", WEBSERVER_PORT);
     return true;
 }

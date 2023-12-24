@@ -2,6 +2,7 @@
 #define SENSOR_H
 
 #include "conf.h"
+#include "wifi.h"
 
 #include <ADS1X15.h>
 #include <vector>
@@ -12,7 +13,7 @@ class ForceEvent {
 
   public:
     void record_sample(float value) { samples.push_back(value); }
-    void init_object() { timestamp = micros(); }
+    void init_object() { timestamp = get_epoch_time(); }
     void reset_object() { samples.clear(); }
     uint64_t get_timestamp() { return timestamp; }
     std::vector<float> get_samples() { return samples; }
@@ -20,11 +21,17 @@ class ForceEvent {
     float peak_force() {
         return *std::max_element(samples.begin(), samples.end());
     }
-    float average_force() { return peak_force() / samples_collected(); }
+    float average_force() {
+        float total = 0;
+        for (float s : samples) {
+            total += s;
+        }
+        return total / samples_collected();
+    }
 };
 
 bool initialize_force_sensor();
 bool sample_force_sensor();
 void unsafe_clear_events();
-DynamicJsonDocument serialize_events();
+std::vector<ForceEvent> get_current_events();
 #endif

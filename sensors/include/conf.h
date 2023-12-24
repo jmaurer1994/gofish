@@ -14,19 +14,19 @@
 #define EADC_ALERT_PIN 0
 //controls when the eADC comparator sends an alert
 //high must be >= low
-#define EADC_COMPARATOR_THRESHOLD_HIGH 0x0250
+#define EADC_COMPARATOR_THRESHOLD_HIGH 0x0100
 #define EADC_COMPARATOR_THRESHOLD_LOW 0x0100
 
+#define WEBSERVER_PORT 80
+#define WEBSERVER_MEMORYLIMIT 16384
+
+#define WLAN_IPV4_ADDRESS 192,168,25,83
+#define WLAN_IPV4_GATEWAY 192,168,25,1
+#define WLAN_IPV4_SUBNET_MASK 255,255,255,0
+#define WLAN_IPV4_DNS1 8,8,8,8
+#define WLAN_IPV4_DNS2 8,8,4,4
+
 // should be provided by user_build_params.ini
-#ifndef WLAN_IPV4_ADDRESS
-#define WLAN_IPV4_ADDRESS 192, 168, 25, 100
-#endif
-#ifndef WLAN_IPV4_GATEWAY
-#define WLAN_IPV4_GATEWAY 192, 168, 25, 1
-#endif
-#ifndef WLAN_IPV4_SUBNET_MASK
-#define WLAN_IPV4_SUBNET_MASK 255, 255, 255, 0
-#endif
 #ifndef WLAN_SSID
 #define WLAN_SSID "SSID"
 #endif
@@ -36,12 +36,8 @@
 #ifndef INITIAL_STARTUP_DELAY
 #define INITIAL_STARTUP_DELAY 0
 #endif
-#ifndef SERIAL_BAUD_RATE
+
 #define SERIAL_BAUD_RATE 115200
-#endif
-#ifndef WEBSERVER_PORT
-#define WEBSERVER_PORT 80
-#endif
 
 #ifdef DEBUG
 #define DEBUG_BEGIN(x) Serial.begin(x)
