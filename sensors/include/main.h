@@ -5,4 +5,6 @@
 #include "server.h"
 #include "network.h"
 
+#include <Arduino.h>
+
 #endif

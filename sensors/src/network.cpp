@@ -7,8 +7,9 @@ IPAddress dns1(WLAN_IPV4_DNS1);
 IPAddress dns2(WLAN_IPV4_DNS2);
 
 WiFiUDP ntpUDP;
-NTPClient timeClient(ntpUDP, NTP_SYNC_URL, 0, NTP_SYNC_INTERVAL_MILLIS);
-
+// no offset because it offsets the epoch time value (per library doc)
+// https://github.com/arduino-libraries/NTPClient
+NTPClient timeClient(ntpUDP, NTP_SYNC_URL, 0, NTP_SYNC_INTERVAL_MILLIS); 
 bool initialize_network() {
     WiFi.mode(WIFI_STA);
 
@@ -53,7 +54,7 @@ bool initialize_network() {
 }
 
 void run_network_checks() {
-    static uint64_t last_status_check_timestamp = -WLAN_CHECK_INTERVAL_MILLIS; //should run at start
+    static int64_t last_status_check_timestamp = -WLAN_CHECK_INTERVAL_MILLIS; //should run at start
     uint32_t current_millis = millis();
 
     if (current_millis - last_status_check_timestamp <
@@ -68,7 +69,9 @@ void run_network_checks() {
         DEBUG_PRINTLN(WLAN_SSID);
         WiFi.disconnect();
         WiFi.reconnect();
-        return;
+        if (WiFi.status() != WL_CONNECTED) {
+            return;
+        }
     }
 
     // sync with NTP server if needed

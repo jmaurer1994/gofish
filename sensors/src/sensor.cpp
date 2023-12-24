@@ -13,9 +13,10 @@ void IRAM_ATTR SAMPLE_START_ISR() {
 
 std::vector<ForceEvent> current_events;
 ForceEvent current_event;
-float last_reading = 0;
 
 bool sample_force_sensor() {
+    static float last_reading = 0;
+    
     if (!sensor_activity && !sampling_active) {
         return false; // no sensor activity & not sampling
     }
