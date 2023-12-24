@@ -9,7 +9,7 @@ IPAddress dns2(WLAN_IPV4_DNS2);
 WiFiUDP ntpUDP;
 // no offset because it offsets the epoch time value (per library doc)
 // https://github.com/arduino-libraries/NTPClient
-NTPClient timeClient(ntpUDP, NTP_SYNC_URL, 0, NTP_SYNC_INTERVAL_MILLIS); 
+NTPClient timeClient(ntpUDP, NTP_SYNC_URL, 0, NTP_SYNC_INTERVAL_MILLIS);
 bool initialize_network() {
     WiFi.mode(WIFI_STA);
 
@@ -54,17 +54,18 @@ bool initialize_network() {
 }
 
 void run_network_checks() {
-    static int64_t last_status_check_timestamp = -WLAN_CHECK_INTERVAL_MILLIS; //should run at start
-    uint32_t current_millis = millis();
+    static int64_t last_status_check_timestamp = -WLAN_CHECK_INTERVAL_MILLIS; // should run at start
+    uint64_t current_millis = millis();
 
     if (current_millis - last_status_check_timestamp <
         WLAN_CHECK_INTERVAL_MILLIS) {
         return; // not time to to check
     }
 
+    last_status_check_timestamp = current_millis;
     // check wifi
     if (WiFi.status() != WL_CONNECTED) {
-        DEBUG_PRINTF1("WiFi not connected(%d), attempting to connect... ",
+        DEBUG_PRINTF1("WiFi not connected(%d), attempting to connect to network: ",
                       WiFi.status());
         DEBUG_PRINTLN(WLAN_SSID);
         WiFi.disconnect();
@@ -86,8 +87,6 @@ void run_network_checks() {
     IPAddress ip = WiFi.localIP();
     DEBUG_PRINT("IP: ");
     DEBUG_PRINTLN(ip);
-
-    last_status_check_timestamp = current_millis;
     return;
 }
 
