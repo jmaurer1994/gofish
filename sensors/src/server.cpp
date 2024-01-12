@@ -48,7 +48,6 @@ void handleReadScaleRequest(AsyncWebServerRequest *request) {
 ///////////////////////////
 // Force Sensor
 ///////////////////////////
-
 void handleRetrieveCurrentEvents(AsyncWebServerRequest *request) {
     std::vector<ForceEvent> current_events = get_current_events();
 
