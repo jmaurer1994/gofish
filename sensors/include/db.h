@@ -4,7 +4,7 @@
 #include "conf.h"
 #include "sensor.h"
 
-#include <AsyncHTTPRequest_Generic.h>
+#include <AsyncHTTPRequest_Generic.hpp>
 
 bool initialize_db_connection();
 

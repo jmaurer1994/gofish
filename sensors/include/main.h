@@ -7,5 +7,7 @@
 #include "server.h"
 #include "network.h"
 
+#include <AsyncHTTPRequest_Generic.h>
+
 
 #endif
