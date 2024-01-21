@@ -6,7 +6,5 @@
 #include "sensor.h"
 
 #include <ESPAsyncWebSrv.h>
-#include <AsyncJson.h>
-
 bool initialize_server();
 #endif

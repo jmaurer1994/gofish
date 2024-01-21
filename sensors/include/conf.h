@@ -1,6 +1,7 @@
 #ifndef CONF_H
 #define CONF_H
 
+#include <Arduino.h>
 #include <ArduinoJson.h>
 
 #define LOADCELL_INIT_TARE_VALUE -6293.5
@@ -39,7 +40,7 @@
 #endif
 #ifndef WLAN_IPV4_DNS1
 #define WLAN_IPV4_DNS1 8, 8, 8, 8
-#endif 
+#endif
 #ifndef WLAN_IPV4_DNS2
 #define WLAN_IPV4_DNS2 8, 8, 4, 4
 #endif
@@ -65,14 +66,14 @@
 #ifndef DB_PASSWORD
 #define DB_PASSWORD "password123"
 #endif
-#ifndef DB_DATABASE
-#define DB_DATABASE "your_db"
+#ifndef DB_SCHEMA
+#define DB_SCHEMA "schema"
 #endif
-#ifndef DB_ADDRESS
-#define DB_ADDRESS 192, 168, 1, 50
+#ifndef DB_DATA_URL
+#define DB_DATA_URL "http://db.local/table"
 #endif
-#ifndef DB_PORT
-#define DB_PORT 5432
+#ifndef DB_LOGIN_URL
+#define DB_LOGIN_URL "http://db.local/rpc/login"
 #endif
 
 // for esp32

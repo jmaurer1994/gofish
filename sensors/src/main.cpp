@@ -24,6 +24,9 @@ void setup() {
         DEBUG_PRINTLN("Failed to initialize scale");
     }
 
+    if (!initialize_db_connection()) {
+        DEBUG_PRINTLN("Failed to initialize db");
+    }
     ArduinoOTA.begin();
     DEBUG_PRINTLN("Done setup");
 }

@@ -3,10 +3,10 @@ build_flags =
     -DDEBUG
     -DINITIAL_STARTUP_DELAY=5000
     
-    '-DDB_USER="postgres"'
+    '-DDB_USER="userrole"'
     '-DDB_PASSWORD="password123"'
-    '-DDB_PASSWORD="your_db"'
-    '-DDB_ADDRESS=192,168,1,50'
+    '-DDB_SCHEMA="your_schema"'
+    '-DDB_HOST="192.168.25.50"'
     '-DDB_PORT=5432'
 
     '-DWLAN_IPV4_ADDRESS=192,168,1,200'

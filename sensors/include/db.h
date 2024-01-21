@@ -2,7 +2,10 @@
 #define DB_H
 
 #include "conf.h"
+#include "sensor.h"
 
-#include <SimplePgSQL.h>
-#include <AsyncTCP.h>
+#include <AsyncHTTPRequest_Generic.h>
+
+bool initialize_db_connection();
+
 #endif
