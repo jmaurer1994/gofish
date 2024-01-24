@@ -1,4 +1,8 @@
 #include "server.h"
+#include "conf.h"
+#include "scale.h"
+#include "sensor.h"
+#include "network.h"
 
 AsyncWebServer server(WEBSERVER_PORT);
 

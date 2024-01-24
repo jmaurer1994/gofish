@@ -1,25 +1,33 @@
 #include "sensor.h"
+#include "db.h"
 #include "conf.h"
+#include "network.h"
+
 ADS1115 ADS(0x48);
 
 volatile bool sensor_activity = false;
 volatile bool sampling_active = false;
 
-void IRAM_ATTR SAMPLE_START_ISR() {
-    if (!sampling_active) {
+void IRAM_ATTR SAMPLE_START_ISR()
+{
+    if (!sampling_active)
+    {
         sensor_activity = true;
     }
 }
 
 std::vector<ForceEvent> current_events;
 ForceEvent current_event;
-bool sample_force_sensor() {
+bool sample_force_sensor()
+{
     static float last_reading = 0;
-    if (!sensor_activity && !sampling_active) {
+    if (!sensor_activity && !sampling_active)
+    {
         return false; // no sensor activity & not sampling
     }
 
-    if (sensor_activity && !sampling_active) {
+    if (sensor_activity && !sampling_active)
+    {
         sampling_active = true;
         current_event.init_object(); // set timestamp
         DEBUG_PRINTF1("Started sampling: %d\n", current_event.get_timestamp());
@@ -28,15 +36,19 @@ bool sample_force_sensor() {
     // do sampling
     float force = ADS.getValue();
 
-    if (force < 100) {
+    if (force < 100)
+    {
         // stop sampling
-        if (current_event.samples_collected() > 0) {
+        if (current_event.samples_collected() > 0)
+        {
             DEBUG_PRINTF3("Recorded event:\navg:%f\tpeak:%f\tsamples:%d\n",
                           current_event.average_force(),
                           current_event.peak_force(),
                           current_event.samples_collected());
             current_events.push_back(current_event);
+            sendSensorEventInsertRequest(current_event);
             current_event.reset_object(); // clear list
+
         } // don't save phantom events (happens on wifi dc?)
 
         sensor_activity = false; // reset int
@@ -44,7 +56,8 @@ bool sample_force_sensor() {
         return false;
     }
 
-    if (force != last_reading) {
+    if (force != last_reading)
+    {
         current_event.record_sample(force);
     }
 
@@ -53,7 +66,8 @@ bool sample_force_sensor() {
     return true;
 }
 
-bool initialize_force_sensor() {
+bool initialize_force_sensor()
+{
     Wire.begin();
     ADS.begin();
 
@@ -78,7 +92,8 @@ bool initialize_force_sensor() {
     attachInterrupt(digitalPinToInterrupt(EADC_ALERT_PIN), SAMPLE_START_ISR,
                     RISING);
 
-    if (!ADS.isConnected()) {
+    if (!ADS.isConnected())
+    {
         DEBUG_PRINTLN("ADS not connected!");
     }
 
@@ -89,21 +104,48 @@ ForceEvent get_last_event() { return current_events.back(); }
 
 std::vector<ForceEvent> get_current_events() { return current_events; }
 
-size_t clear_events(uint64_t timestamp) {
+size_t clear_events(uint64_t timestamp)
+{
 
     size_t event_count = current_events.size();
 
     current_events.erase(
         std::remove_if(current_events.begin(), current_events.end(),
-                       [timestamp](const ForceEvent &event) {
-                            return event.get_timestamp() <= timestamp;
+                       [timestamp](const ForceEvent &event)
+                       {
+                           return event.get_timestamp() <= timestamp;
                        }),
         current_events.end());
 
     return event_count - current_events.size();
 }
 
-size_t unsafe_clear_events() {
+size_t unsafe_clear_events()
+{
     current_events.clear();
     return current_events.size();
+}
+
+void ForceEvent::record_sample(float value)
+{
+    samples.push_back(value);
+}
+
+void ForceEvent::init_object() { timestamp = get_epoch_time(); }
+void ForceEvent::reset_object() { samples.clear(); }
+uint64_t ForceEvent::get_timestamp() const { return timestamp; }
+std::vector<float> ForceEvent::get_samples() { return samples; }
+uint16_t ForceEvent::samples_collected() { return samples.size(); }
+float ForceEvent::peak_force()
+{
+    return *std::max_element(samples.begin(), samples.end());
+}
+float ForceEvent::average_force()
+{
+    float total = 0;
+    for (float s : samples)
+    {
+        total += s;
+    }
+    return total / samples_collected();
 }
