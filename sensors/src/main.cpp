@@ -2,7 +2,6 @@
 #include "main.h"
 
 void setup() {
-
     DEBUG_BEGIN(SERIAL_BAUD_RATE);
 
     delay(INITIAL_STARTUP_DELAY);

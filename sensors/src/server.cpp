@@ -92,7 +92,7 @@ void handleClearCurrentEvents(AsyncWebServerRequest *request) {
         return;
     }
 
-    size_t count = clear_events(timestamp);
+    size_t count = clear_events_range(timestamp);
 
     request->send(200, "text/plain", String(count));
     return;

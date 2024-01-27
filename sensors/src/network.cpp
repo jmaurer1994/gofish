@@ -81,7 +81,7 @@ void run_network_checks() {
     // handle any OTA events
     ArduinoOTA.handle();
 
-    DEBUG_PRINTF2("Connected to network: %s\ncurrent time: %s\t", WLAN_SSID,
+    DEBUG_PRINTF2("Connected to network: %s\n%s\t", WLAN_SSID,
                   timeClient.getFormattedTime());
 
     IPAddress ip = WiFi.localIP();
@@ -90,6 +90,6 @@ void run_network_checks() {
     return;
 }
 
-uint64_t get_epoch_time() { return timeClient.getEpochTime(); }
+uint64_t get_epoch_time(){ return timeClient.getEpochTime(); }
 
 IPAddress get_ip() { return WiFi.localIP(); }

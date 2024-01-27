@@ -3,60 +3,78 @@
 
 AsyncHTTPRequest authRequest;
 AsyncHTTPRequest insertRequest;
-String jwtToken;
-
 std::vector<ForceEvent> sentEvents;
 std::vector<ForceEvent> unsentEvents;
 static bool waitingAuthRequest;
 
+DynamicJsonDocument authResponseObject(512); // holds current JWT value
+DynamicJsonDocument insertResponseObject(
+    1024); // receives timestamp from inserted event for event cleanup
+DynamicJsonDocument
+    insertRequestObject(4096); // facilitates sending of event for insertion
+
+DynamicJsonDocument authRequestObject(512);
 bool sendAuthenticationRequest();
-void resend_event();
+bool resend_queued_event();
 uint8_t confirm_event_entry(uint64_t timestamp);
-
-
-#define ASYNC_HTTP_DEBUG_PORT     Serial
-#define _ASYNC_HTTP_LOGLEVEL_     4
-
-void authRequestCB(void *optParm, AsyncHTTPRequest *request, int readyState) {
+void auth_request_cb(void *optParm, AsyncHTTPRequest *request, int readyState) {
   (void)optParm;
+  if (readyState != readyStateDone) {
+    return;
+  }
+  DEBUG_PRINTF2("AUTH REQUEST RESPONSE %d = %s\n", request->responseHTTPcode(),
+                request->responseHTTPString());
 
-  if (readyState == readyStateDone) {
-    DEBUG_PRINTF1("Response Code = %s", request->responseHTTPString());
-
-    if (request->responseHTTPcode() == 200) {
-      DynamicJsonDocument responseObject(512);
-      deserializeJson(responseObject, request->responseText());
-      DEBUG_PRINTLN(request->responseText());
-      jwtToken = responseObject["token"].as<String>();
-      DEBUG_PRINTF1("TOKEN: %s", jwtToken);
-      waitingAuthRequest = false;
-      resend_event();
+  if (request->responseHTTPcode() == 200) {
+    const String response = request->responseText();
+    DeserializationError err = deserializeJson(authResponseObject, response);
+    if (err) {
+      DEBUG_PRINTF1("JSON DESERIALIZATION ERROR: %s\n", err.c_str());
     }
+    waitingAuthRequest = false;
+    if (resend_queued_event()) {
+      DEBUG_PRINTLN("RESENT QUEUED EVENT");
+    };
   }
 }
 
-void insertRequestCB(void *optParm, AsyncHTTPRequest *request, int readyState) {
+void insert_request_cb(void *optParm, AsyncHTTPRequest *request,
+                       int readyState) {
   (void)optParm;
 
-  if (readyState == readyStateDone) {
-    DEBUG_PRINTF1("Response Code = %s\n", request->responseHTTPString());
-    DEBUG_PRINTF1("%s\n", request->headers());
-    if (request->responseHTTPcode() == 200) {
-      // get timestamp, remove from sent requests
-      DEBUG_PRINTLN(request->responseText());
-      DynamicJsonDocument responseObject(512);
-      deserializeJson(responseObject, request->responseText());
-      uint64_t timestamp = responseObject["timestamp"];
-      confirm_event_entry(timestamp);
+  if (readyState != readyStateDone) {
+    return;
+  }
+
+  DEBUG_PRINTF2("INSERT REQUEST RESPONSE %d = %s\n",
+                request->responseHTTPcode(), request->responseHTTPString());
+  if (request->responseHTTPcode() == 201) {
+    const String response = request->responseText();
+
+    DeserializationError err = deserializeJson(insertResponseObject, response);
+    if (err) {
+      DEBUG_PRINTF1("JSON DESERIALIZATION ERROR: %s\n", err.c_str());
     }
-    if (request->responseHTTPcode() == 401) {
-      DEBUG_PRINTLN("Request not authenticated");
-      if (!waitingAuthRequest) {
-        sendAuthenticationRequest();
-      }
+
+    uint64_t timestamp = insertResponseObject[0]["timestamp"];
+
+    printf("%d", timestamp);
+    if (!confirm_event_entry(timestamp)) {
+      DEBUG_PRINTF1("EVENT %llu NOT CONFIRMED", timestamp);
     }
+    return;
+  }
+
+  if (request->responseHTTPcode() == 401) {
+    DEBUG_PRINTLN("REQUEST NOT AUTHENTICATED");
+    if (!waitingAuthRequest) {
+      sendAuthenticationRequest();
+      DEBUG_PRINTLN("SENT AUTH REQUEST");
+    }
+    return;
   }
 }
+
 uint8_t confirm_event_entry(uint64_t timestamp) {
   uint8_t event_count = sentEvents.size();
   sentEvents.erase(std::remove_if(sentEvents.begin(), sentEvents.end(),
@@ -67,30 +85,30 @@ uint8_t confirm_event_entry(uint64_t timestamp) {
   return event_count - sentEvents.size();
 }
 
-void resend_event() {
-  if (!waitingAuthRequest) {
-    return;
+boolean resend_queued_event() {
+  if (waitingAuthRequest) {
+    return false;
   }
 
   if (sentEvents.size() > 0) {
     ForceEvent event = sentEvents.back();
     sentEvents.pop_back();
     sendSensorEventInsertRequest(event);
-    return;
+    return true;
   }
 
   if (unsentEvents.size() > 0) {
     ForceEvent event = unsentEvents.back();
     unsentEvents.pop_back();
     sendSensorEventInsertRequest(event);
-    return;
+    return true;
   }
-
-  return;
+  return false;
 }
+
 bool initialize_db_connection() {
-  authRequest.onReadyStateChange(authRequestCB);
-  insertRequest.onReadyStateChange(insertRequestCB);
+  authRequest.onReadyStateChange(auth_request_cb);
+  insertRequest.onReadyStateChange(insert_request_cb);
 
   // get an auth token
   return true;
@@ -104,8 +122,7 @@ bool sendAuthenticationRequest() {
     return false; // not ready
   }
 
-  DEBUG_PRINTLN("SENDING AUTH REQ");
-  authRequest.setDebug(true);
+  authRequest.setDebug(false);
   requestOpenResult = authRequest.open("POST", DB_LOGIN_URL);
   if (!requestOpenResult) {
     // Only send() if open() returns true, or crash
@@ -114,24 +131,24 @@ bool sendAuthenticationRequest() {
   }
 
   // send body
-  DynamicJsonDocument requestObject(512);
 
-  requestObject["username"] = DB_USER;
-  requestObject["password"] = DB_PASSWORD;
+  authRequestObject["username"] = DB_USER;
+  authRequestObject["password"] = DB_PASSWORD;
 
   String request;
 
-  serializeJson(requestObject, request);
+  serializeJson(authRequestObject, request);
 
   authRequest.send(request);
 
-  DEBUG_PRINTLN("Auth request sent");
   return true;
 }
 
 bool sendSensorEventInsertRequest(ForceEvent event) {
+
   static bool requestOpenResult;
-  if (jwtToken == "") {
+  if (!authResponseObject["token"]) {
+    DEBUG_PRINTLN("NEED AUTHENTICATION BEFORE INSERTION");
     unsentEvents.push_back(event);
     sendAuthenticationRequest();
     return false;
@@ -139,11 +156,11 @@ bool sendSensorEventInsertRequest(ForceEvent event) {
 
   if (!(insertRequest.readyState() == readyStateUnsent ||
         insertRequest.readyState() == readyStateDone)) {
+    DEBUG_PRINTLN("INSERT REQUEST NOT READY");
     unsentEvents.push_back(event);
     return false; // not ready
   }
-  DEBUG_PRINTLN("SENDING INSERT REQ");
-  insertRequest.setDebug(true);
+  insertRequest.setDebug(false);
   requestOpenResult = insertRequest.open("POST", DB_DATA_URL);
 
   if (!requestOpenResult) {
@@ -153,25 +170,25 @@ bool sendSensorEventInsertRequest(ForceEvent event) {
     return false;
   }
 
-  insertRequest.setReqHeader("Authorization", ("Bearer " + jwtToken).c_str());
+  insertRequest.setReqHeader(
+      "Authorization",
+      ("Bearer " + authResponseObject["token"].as<String>()).c_str());
+  insertRequest.setReqHeader("Content-Type", "application/json");
   insertRequest.setReqHeader("Content-Profile", "data");
   insertRequest.setReqHeader("Prefer", "return=representation");
 
   // send body
-  DynamicJsonDocument requestObject(4096);
 
-  requestObject["timestamp"] = event.get_timestamp();
+  insertRequestObject["timestamp"] = event.get_timestamp();
 
   for (float sample : event.get_samples()) {
-    requestObject["samples"].add(sample);
+    insertRequestObject["samples"].add(sample);
   }
 
   String request;
-  serializeJson(requestObject, request);
+  serializeJson(insertRequestObject, request);
 
   insertRequest.send(request);
   sentEvents.push_back(event);
-  DEBUG_PRINTLN(request);
-  DEBUG_PRINTLN("Insert request sent");
   return true;
 }

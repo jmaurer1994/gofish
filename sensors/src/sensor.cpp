@@ -104,7 +104,7 @@ ForceEvent get_last_event() { return current_events.back(); }
 
 std::vector<ForceEvent> get_current_events() { return current_events; }
 
-size_t clear_events(uint64_t timestamp)
+size_t clear_events_range(uint64_t timestamp)
 {
 
     size_t event_count = current_events.size();

@@ -3,7 +3,6 @@
 
 #include <Arduino.h>
 #include <ArduinoJson.h>
-
 #define LOADCELL_INIT_TARE_VALUE -6293.5
 // calibration factor: read raw loadcell value with known weight attached
 // divide reading(g) by known weight mass(g)
@@ -80,7 +79,7 @@
 #define SERIAL_BAUD_RATE 115200
 
 #ifdef DEBUG
-#define DEBUG_BEGIN(x) Serial.begin(x)
+#define DEBUG_BEGIN(x) Serial.begin(x) 
 #define DEBUG_PRINT(x) Serial.print(x)
 #define DEBUG_PRINTLN(x) Serial.println(x)
 #define DEBUG_PRINTF1(txt, x) Serial.printf(txt, x)
