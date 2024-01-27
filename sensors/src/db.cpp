@@ -58,7 +58,6 @@ void insert_request_cb(void *optParm, AsyncHTTPRequest *request,
 
     uint64_t timestamp = insertResponseObject[0]["timestamp"];
 
-    printf("%d", timestamp);
     if (!confirm_event_entry(timestamp)) {
       DEBUG_PRINTF1("EVENT %llu NOT CONFIRMED", timestamp);
     }
