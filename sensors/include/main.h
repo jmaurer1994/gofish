@@ -8,9 +8,5 @@
 #include "network.h"
 
 #include <AsyncHTTPRequest_Generic.h>
-#define ASYNC_HTTP_DEBUG_PORT     Serial
-#define _ASYNC_HTTP_LOGLEVEL_     4
-
-
 
 #endif
