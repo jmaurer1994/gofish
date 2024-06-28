@@ -13,10 +13,9 @@
 #define LOADCELL_MAX_SAMPLES_PER_REQUEST 100
 
 #define EADC_ALERT_PIN 0
-// controls when the eADC comparator sends an alert
-// high must be >= low
-#define EADC_COMPARATOR_THRESHOLD_HIGH 0x0100
-#define EADC_COMPARATOR_THRESHOLD_LOW 0x0100
+
+// External ADC comparator threshold in volts, alert pin will go high above this value
+#define EADC_COMPARATOR_THRESHOLD_VOLTS 0.163
 
 #define WEBSERVER_PORT 80
 #define WEBSERVER_MEMORYLIMIT 4.194E6

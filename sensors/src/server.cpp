@@ -98,6 +98,12 @@ void handleClearCurrentEvents(AsyncWebServerRequest *request) {
     return;
 }
 
+void handleGetSensorReading(AsyncWebServerRequest *request){
+    float force = get_sensor_reading();
+    request->send(200, "text/plain", String(force, 5));
+    return;
+}
+
 ///////////////////////////
 // Default
 ///////////////////////////
@@ -132,6 +138,8 @@ bool initialize_server() {
 
     server.on("/force/events/read_current", HTTP_GET,
               handleRetrieveCurrentEvents);
+    server.on("/force/sensor/read", HTTP_GET,
+              handleGetSensorReading);
     server.on("/force/events/clear_current", HTTP_GET,
               handleClearCurrentEvents);
 

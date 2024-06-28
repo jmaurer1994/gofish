@@ -21,6 +21,7 @@ public:
 
 bool initialize_force_sensor();
 bool sample_force_sensor();
+float get_sensor_reading();
 size_t unsafe_clear_events();
 size_t clear_events_range(uint64_t timestamp);
 std::vector<ForceEvent> get_current_events();
